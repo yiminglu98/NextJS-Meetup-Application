@@ -1,5 +1,8 @@
 import MeetupList from "../components/meetups/MeetupList";
 
+// Import server side code here will be detected and this will not be included in your clients side bundle
+import { MongoClient } from "mongodb";
+
 const DUMMY_MEETUPS = [
     {
         id:'m1',
@@ -23,9 +26,28 @@ function HomePage(props){
 };
 
 export async function getStaticProps(){
+    const client = await MongoClient.connect(
+        "mongodb+srv://yiming:yiming@cluster0.27mpt1a.mongodb.net/?retryWrites=true&w=majority"
+      );
+      const db = client.db();
+  
+      const meetupsCollection = db.collection("meetups");
+
+      const meetups = await meetupsCollection.find().toArray();
+
+      client.close();
+
+    
+
     return {
         props:{
-            meetups: DUMMY_MEETUPS
+            meetups: meetups.map(meetup => ({
+                title: meetup.title,
+                address: meetup.address,
+                image: meetup.image,
+                description: meetup.description,
+                id: meetup._id.toString()
+            }))
         },
         revalidate: 1
     };
